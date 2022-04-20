@@ -3,28 +3,47 @@ import { allIds, fetchOrderById } from "../api";
 
 ////////////////////////////////// Your code tasks is below //////////////////////////////////////////////////////
 
+
+//helpers section
+const secondsToDays = (seconds) => {
+    return seconds / (24 * 60 * 60 * 100);
+}
+
 const fetchAllOrders = () => {
     const ids = allIds;
-    // .....
-    //   1. TODO: fetch all ids using the "fetchOrderById" and the given ids, make it work as efficient and clean as possible.
+
+    let orders = ids.map(id => fetchOrderById(id))
+
+    return Promise.all(orders)
 };
 
-const bucketOrdersByUsers = () => {
-    let ordersByUsers = {};
-    //   2. TODO: using the function from section 1 you should now bucket the orders by user.
-    // each key in the object (ordersByUsers) represents a userId and each value is an array of the orders of that user.
-    return ordersByUsers;
+const bucketOrdersByUsers = async () => {
+    const orders = await fetchAllOrders()
+    const grouped = {}
+
+    orders.map(order => {
+        grouped[order.userId] = grouped[order.userId] ? [...grouped[order.userId], order.title] : [order.title];
+    })
+
+    return grouped
 };
 
-const getLast2WeeksOrders = () => {
-    //   3. TODO: fetch all Ids and return array with only the last 2 weeks orders. make it work as efficient and clean as possible.
+const getLast2WeeksOrders = async () => {
+    const orders = await fetchAllOrders()
+
+    return orders.filter(order => secondsToDays(Date.now() - order.timestamp) <= 14)
 };
 
-const bucketOrdersByDate = () => {
-    let ordersByDate = {};
-    //   4. TODO: using the function from section 3 bucket the orders by date.
-    // each key in the object (ordersByDate) represents a day and each value is an array of the orders in that date.
-    return ordersByDate;
+const bucketOrdersByDate = async () => {
+    const orders = await fetchAllOrders()
+    const grouped = {}
+
+    orders.map(order => {
+        let date = new Date(order.timestamp).toLocaleDateString()
+        grouped[date] = grouped[date] ? [...grouped[date], order.title] : [order.title];
+    })
+
+    return grouped
 };
 
 fetchAllOrders();
